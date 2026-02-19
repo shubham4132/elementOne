@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, Menu, X, Search, ShoppingCart, User } from "lucide-react";
 import logo from "../assets/logo.png";
+import ProfileDropdown from "./Profiledropdown";
 
 export default function Navbar() {
   // State to track if mobile menu is open
@@ -125,7 +126,20 @@ export default function Navbar() {
                   </span>
                 </div>
                 {/* User profile icon */}
-                <User className="text-gray-800 cursor-pointer" size={24} />
+                {/* <div className="relative">
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="p-2 hover:bg-green-700 rounded-md"
+                  >
+                    <User className="text-gray-800 cursor-pointer" size={24} />
+                  </button>
+
+                  <ProfileDropdown
+                    isOpen={profileOpen}
+                    onClose={() => setProfileOpen(false)}
+                  />
+                </div> */}
+                <ProfileDropdown />
               </div>
             </div>
             {/* ===== MOBILE MENU BUTTON (visible on small/medium screens) ===== */}

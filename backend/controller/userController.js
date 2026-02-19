@@ -1,0 +1,47 @@
+import handleAsyncError from "../middleware/handleAsyncError.js";
+import HandleError from "../utils/handleError.js";
+import User from "../models/userModel.js";
+import { sendToken } from "../utils/jwtToken.js";
+
+//REGISTER
+export const registerUser = handleAsyncError(async (req, res, next) => {
+  const { name, email, password, confirmPassword } = req.body;
+
+  const user = await User.create({
+    name,
+    email,
+    password,
+    confirmPassword,
+  });
+  user.password = undefined;
+  sendToken(user, 201, res);
+});
+
+//LOGIN
+export const loginUser = handleAsyncError(async (req, res, next) => {
+  const { email, password } = req.body;
+  console.log("Entered Email:", email);
+  console.log("Entered Password:", password);
+  if (!email || !password) {
+    return next(new HandleError("Email or password cannot be empty", 400));
+  }
+  const user = await User.findOne({ email }).select("+password");
+  console.log("User from DB:", user);
+  if (!user) {
+    return next(new HandleError("Invalid Email or password", 401));
+  }
+  const isPasswordValid = await user.verifyPassword(password);
+  if (!isPasswordValid) {
+    return next(new HandleError("Invalid Email or password", 401));
+  }
+  sendToken(user, 200, res);
+});
+
+//Get user details
+export const getUserDetails = handleAsyncError(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
