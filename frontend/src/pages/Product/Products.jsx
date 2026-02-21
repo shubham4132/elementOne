@@ -1,6 +1,6 @@
-import ashwagandha from "../assets/productimage/A.jpg";
-import keto from "../assets/productimage/Advance.png";
-import carbBlocker from "../assets/productimage/CARB-BLOCKER-.jpg";
+import ashwagandha from "../../assets/productimage/A.jpg";
+import keto from "../../assets/productimage/Advance.png";
+import carbBlocker from "../../assets/productimage/CARB-BLOCKER-.jpg";
 
 let Products1 = [
   {
@@ -86,7 +86,7 @@ let Products1 = [
 ];
 
 import React from "react";
-import { ProductCard } from "../components/ProductCard";
+import { ProductCard } from "../../components/ProductCard";
 
 export default function Products() {
   return (
