@@ -18,6 +18,7 @@ export default function Navbar({ onMenuClick }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const { user } = useSelector((state) => state.user);
+  const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,22 +41,28 @@ export default function Navbar({ onMenuClick }) {
     {
       label: "NUTRITION",
       href: "#",
-      dropdown: ["Supplements", "Vitamins", "Minerals"],
+      dropdown: ["ONCO NUTRITION", "WEIGHT LOSS/OBESITY", "CHILD NUTRITION"],
     },
     {
       label: "WOMENS PROBLEM",
       href: "#",
-      dropdown: ["Health", "Beauty", "Wellness"],
+      dropdown: ["MENOPOUSE", "PCOS/PCOS", "WHITE DISCHARGE"],
     },
     {
       label: "MENS PROBLEMS",
       href: "#",
-      dropdown: ["Fitness", "Energy", "Recovery"],
+      dropdown: ["PROSTATE PROBLEM", "SEXUAL ISSUE"],
     },
     {
       label: "TREATMENT",
       href: "#",
-      dropdown: ["Ayurvedic", "Modern", "Holistic"],
+      dropdown: [
+        "DIABETES",
+        "HYPERTENSION / BP",
+        "JOINT PAIN",
+        "LIVER / KIDNEY",
+        "PROSTATE",
+      ],
     },
     { label: "OFFER ZONE", href: "#" },
   ];
@@ -147,6 +154,7 @@ export default function Navbar({ onMenuClick }) {
               <div className="relative">
                 <input
                   type="text"
+                  value={keyword}
                   placeholder="Search for products"
                   className="bg-white px-4 py-2 pr-9 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-500 w-44"
                 />

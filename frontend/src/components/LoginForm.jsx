@@ -9,8 +9,8 @@ export default function LoginForm({ onSwitchToRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { success, error } = useSelector((state) => state.user);
-  console.log(success, "success");
+  const { user, success, error } = useSelector((state) => state.user);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   function handleSubmit(e) {
@@ -31,10 +31,14 @@ export default function LoginForm({ onSwitchToRegister }) {
   useEffect(() => {
     if (success) {
       toast.success("Login Successful");
-      navigate("/dashboard");
+      if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
       dispatch(removeSuccess());
     }
-  }, [dispatch, success]);
+  }, [dispatch, success, user, navigate]);
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Email Field */}

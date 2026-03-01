@@ -1,11 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Dashboard from "./User/userDashboard";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { loadUser } from "./features/user/userSlice";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Dashboard from "./User/UserDashboard";
 import PublicRoute from "./components/PublicRoute";
+import AdminDashboard from "./Admin/pages/AdminDashboard";
+import AdminCreateProduct from "./Admin/pages/AdminCreateProduct";
+import AdminProducts from "./Admin/pages/AdminProducts";
+import ProductDetails from "./pages/Product/ProductDetails";
 
 export default function App() {
   const { user } = useSelector((state) => state.user);
@@ -21,7 +25,15 @@ export default function App() {
         <Route
           path="/dashboard"
           element={<ProtectedRoute element={<Dashboard user={user} />} />}
-        />{" "}
+        />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        {/* Admin Routes */}
+        <Route
+          path="/admin/dashboard"
+          element={<AdminDashboard user={user} />}
+        />
+        <Route path="/admin/products/create" element={<AdminCreateProduct />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
       </Routes>
     </Router>
   );

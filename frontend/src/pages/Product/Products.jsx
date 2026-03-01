@@ -1,94 +1,22 @@
-import ashwagandha from "../../assets/productimage/A.jpg";
-import keto from "../../assets/productimage/Advance.png";
-import carbBlocker from "../../assets/productimage/CARB-BLOCKER-.jpg";
-
-let Products1 = [
-  {
-    id: 1,
-    title: "Ashwagandha Extract 60 Capsules",
-    image: ashwagandha,
-    discountedPrice: 499,
-    originalPrice: 699,
-    rating: 4.5,
-    category: "Ayurveda",
-    stock: 20,
-  },
-  {
-    id: 2,
-    title: "Best Advance Keto Slimfast Kit Pack 4",
-    image: keto,
-    discountedPrice: 999,
-    originalPrice: 1299,
-    rating: 4.2,
-    category: "Nutrition",
-    stock: 15,
-  },
-  {
-    id: 3,
-    title: "Carb Blocker 60 Capsules",
-    image: carbBlocker,
-    discountedPrice: 499,
-    originalPrice: 699,
-    rating: 4.5,
-    category: "Ayurveda",
-    stock: 20,
-  },
-  {
-    id: 4,
-    title: "Best Advance Keto Slimfast Kit Pack 4",
-    image: keto,
-    discountedPrice: 999,
-    originalPrice: 1299,
-    rating: 4.2,
-    category: "Nutrition",
-    stock: 15,
-  },
-  {
-    id: 5,
-    title: "Ashwagandha Extract 60 Capsules",
-    image: ashwagandha,
-    discountedPrice: 499,
-    originalPrice: 699,
-    rating: 4.5,
-    category: "Ayurveda",
-    stock: 20,
-  },
-  {
-    id: 6,
-    title: "Best Advance Keto Slimfast Kit Pack 4",
-    image: keto,
-    discountedPrice: 999,
-    originalPrice: 1299,
-    rating: 4.2,
-    category: "Nutrition",
-    stock: 15,
-  },
-  {
-    id: 7,
-    title: "Ashwagandha Extract 60 Capsules",
-    image: ashwagandha,
-    discountedPrice: 499,
-    originalPrice: 699,
-    rating: 4.5,
-    category: "Ayurveda",
-    stock: 20,
-  },
-  {
-    id: 8,
-    title: "Best Advance Keto Slimfast Kit Pack 4",
-    image: keto,
-    discountedPrice: 999,
-    originalPrice: 1299,
-    rating: 4.2,
-    category: "Nutrition",
-    stock: 15,
-  },
-];
-
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ProductCard } from "../../components/ProductCard";
+import { useDispatch, useSelector } from "react-redux";
+import { getProduct } from "../../features/products/productSlice";
 
 export default function Products() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { products } = useSelector((state) => state.product);
+
+  useEffect(() => {
+    dispatch(getProduct());
+  }, []);
+
+  const handleViewDetails = (product) => {
+    navigate(`/product/${product.id}`, { state: { product } });
+  };
+
   return (
     <div className="w-full">
       {/* Section Title */}
@@ -101,16 +29,31 @@ export default function Products() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {Products1.map((product) => (
-          <ProductCard
-            key={product.id}
-            image={product.image}
-            title={product.title}
-            originalPrice={product.originalPrice}
-            discountedPrice={product.discountedPrice}
-            // onAddToBasket={() => onAddToBasket && onAddToBasket(product.id)}
-          />
-        ))}
+        {products && products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              image={product.image?.[0]?.url ?? ""} // ✅ extract .url from image object
+              title={product.name}
+              originalPrice={product.originalPrice ?? 0}
+              discountedPrice={product.price ?? 0}
+              salePercentage={
+                product.discountPercent ?? // ✅ backend sends discountPercent
+                Math.round(
+                  ((product.originalPrice - product.price) /
+                    product.originalPrice) *
+                    100,
+                )
+              }
+              onViewDetails={() => handleViewDetails(product)}
+            />
+          ))
+        ) : (
+          <div className="col-span-4 text-center py-20 text-gray-400">
+            Loading products...
+          </div>
+        )}
       </div>
     </div>
   );
