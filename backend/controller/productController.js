@@ -1,6 +1,7 @@
 import Product from "../models/productModel.js";
 import handleAsyncError from "../middleware/handleAsyncError.js";
 import { v2 as cloudinary } from "cloudinary";
+import APIFunctionality from "../utils/apiFunctionality.js";
 
 export const createProducts = handleAsyncError(async (req, res, next) => {
   console.log("req.body →", req.body);
@@ -69,11 +70,28 @@ export const createProducts = handleAsyncError(async (req, res, next) => {
 });
 
 //for user side
+// export const getAllProducts = handleAsyncError(async (req, res, next) => {
+//   const products = await Product.find();
+//   res.status(200).json({
+//     success: true,
+//     products,
+//   });
+// });
 export const getAllProducts = handleAsyncError(async (req, res, next) => {
-  const products = await Product.find();
+  const apiFeatures = new APIFunctionality(Product.find(), req.query).search(); // sirf search karo
+
+  const productCount = await apiFeatures.query.clone().countDocuments();
+
+  const products = await apiFeatures.query;
+
+  if (!products || products.length === 0) {
+    return next(new HandleError("No Product Found", 404));
+  }
+
   res.status(200).json({
     success: true,
     products,
+    productCount,
   });
 });
 

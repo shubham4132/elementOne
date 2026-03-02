@@ -10,16 +10,18 @@ import {
 } from "lucide-react";
 import logo from "../assets/logo.png";
 import ProfileDropdown from "./Profiledropdown";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { getProduct } from "../features/products/productSlice";
 
 export default function Navbar({ onMenuClick }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const { user } = useSelector((state) => state.user);
-  const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [keyword, setKeyword] = useState("");
 
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
@@ -66,6 +68,18 @@ export default function Navbar({ onMenuClick }) {
     },
     { label: "OFFER ZONE", href: "#" },
   ];
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(getProduct({ keyword: keyword.trim() }));
+      //  ↑ directly products fetch karo, navigate nahi!
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
+  const handleSearchChange = (e) => {
+    setKeyword(e.target.value);
+  };
 
   return (
     <>
@@ -155,6 +169,7 @@ export default function Navbar({ onMenuClick }) {
                 <input
                   type="text"
                   value={keyword}
+                  onChange={handleSearchChange}
                   placeholder="Search for products"
                   className="bg-white px-4 py-2 pr-9 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-500 w-44"
                 />

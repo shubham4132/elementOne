@@ -10,8 +10,8 @@ export default function Products() {
   const { products } = useSelector((state) => state.product);
 
   useEffect(() => {
-    dispatch(getProduct());
-  }, []);
+    dispatch(getProduct({}));
+  }, [dispatch]);
 
   const handleViewDetails = (product) => {
     navigate(`/product/${product.id}`, { state: { product } });

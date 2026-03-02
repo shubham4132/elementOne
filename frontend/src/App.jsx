@@ -10,6 +10,7 @@ import AdminDashboard from "./Admin/pages/AdminDashboard";
 import AdminCreateProduct from "./Admin/pages/AdminCreateProduct";
 import AdminProducts from "./Admin/pages/AdminProducts";
 import ProductDetails from "./pages/Product/ProductDetails";
+import Products from "./pages/Product/Products";
 
 export default function App() {
   const { user } = useSelector((state) => state.user);
@@ -18,6 +19,7 @@ export default function App() {
   useEffect(() => {
     dispatch(loadUser());
   }, [dispatch]);
+
   return (
     <Router>
       <Routes>
@@ -27,6 +29,7 @@ export default function App() {
           element={<ProtectedRoute element={<Dashboard user={user} />} />}
         />
         <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/products" element={<Products />} />
         {/* Admin Routes */}
         <Route
           path="/admin/dashboard"

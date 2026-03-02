@@ -1,16 +1,34 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// export const getProduct = createAsyncThunk(
+//   "product/getProduct",
+//   async (_, { rejectWithValue }) => {
+//     try {
+//       const { data } = await axios.get("/api/v1/products");
+//       return data;
+//     } catch (error) {
+//       return rejectWithValue(
+//         error.response?.data || "Error While Fetching the products",
+//       );
+//     }
+//   },
+// );
+
 export const getProduct = createAsyncThunk(
   "product/getProduct",
-  async (_, { rejectWithValue }) => {
+  async ({ keyword }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/v1/products");
+      let link = "/api/v1/products";
+
+      if (keyword) {
+        link += `?keyword=${keyword}`;
+      }
+
+      const { data } = await axios.get(link);
       return data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error While Fetching the products",
-      );
+      return rejectWithValue(error.response?.data || "An error occurred");
     }
   },
 );
