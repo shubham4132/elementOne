@@ -1,8 +1,10 @@
 import express from "express";
 import {
   createProducts,
+  deleteProduct,
   getAdminProducts,
   getAllProducts,
+  updateProduct,
 } from "../controller/productController.js";
 import { roleBasedAccess, verifyUserAuth } from "../middleware/userAuth.js";
 const router = express.Router();
@@ -16,5 +18,10 @@ router
 router
   .route("/admin/products")
   .get(verifyUserAuth, roleBasedAccess("admin"), getAdminProducts);
+
+router
+  .route("/admin/product/:id")
+  .put(verifyUserAuth, roleBasedAccess("admin"), updateProduct)
+  .delete(verifyUserAuth, roleBasedAccess("admin"), deleteProduct);
 
 export default router;

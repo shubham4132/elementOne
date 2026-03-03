@@ -72,7 +72,6 @@ export default function Navbar({ onMenuClick }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(getProduct({ keyword: keyword.trim() }));
-      //  ↑ directly products fetch karo, navigate nahi!
     }, 500);
     return () => clearTimeout(timer);
   }, [keyword]);

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchAdminProducts } from "../../features/admin/adminSlice";
+import {
+  deleteProduct,
+  fetchAdminProducts,
+} from "../../features/admin/adminSlice";
 
 const T = {
   bg: "#070f09",
@@ -594,7 +597,7 @@ export default function AdminAllProducts() {
 
   const handleDelete = (product) => setDeleteTarget(product);
   const confirmDelete = () => {
-    // dispatch(deleteProduct(deleteTarget._id)); // baad mein
+    dispatch(deleteProduct(deleteTarget._id)); // baad mein
     setDeleteTarget(null);
   };
   const handleEdit = (product) =>

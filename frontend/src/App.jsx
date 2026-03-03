@@ -11,6 +11,7 @@ import AdminCreateProduct from "./Admin/pages/AdminCreateProduct";
 import AdminProducts from "./Admin/pages/AdminProducts";
 import ProductDetails from "./pages/Product/ProductDetails";
 import Products from "./pages/Product/Products";
+import AdminEditProduct from "./Admin/pages/AdminEditProduct";
 
 export default function App() {
   const { user } = useSelector((state) => state.user);
@@ -37,6 +38,7 @@ export default function App() {
         />
         <Route path="/admin/products/create" element={<AdminCreateProduct />} />
         <Route path="/admin/products" element={<AdminProducts />} />
+        <Route path="/admin/product/edit/:id" element={<AdminEditProduct />} />
       </Routes>
     </Router>
   );
