@@ -11,8 +11,9 @@ import {
 import logo from "../assets/logo.png";
 import ProfileDropdown from "./Profiledropdown";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getProduct } from "../features/products/productSlice";
+import CartDropdown from "../Cart/Cartdropdown";
 
 export default function Navbar({ onMenuClick }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,6 +23,9 @@ export default function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [keyword, setKeyword] = useState("");
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const category = searchParams.get("category");
 
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
@@ -39,47 +43,70 @@ export default function Navbar({ onMenuClick }) {
     setActiveDropdown((p) => (p === name ? null : name));
 
   const navItems = [
-    { label: "AYURVEDA", href: "#" },
+    { label: "AYURVEDA" },
     {
       label: "NUTRITION",
-      href: "#",
-      dropdown: ["ONCO NUTRITION", "WEIGHT LOSS/OBESITY", "CHILD NUTRITION"],
+      dropdown: [
+        { label: "ONCO NUTRITION" },
+        { label: "WEIGHT LOSS/OBESITY" },
+        {
+          label: "CHILD NUTRITION",
+          subDropdown: ["ANGRY BEHAVIOUR", "HEIGHT GROWTH"],
+        },
+      ],
     },
     {
       label: "WOMENS PROBLEM",
-      href: "#",
-      dropdown: ["MENOPOUSE", "PCOS/PCOS", "WHITE DISCHARGE"],
+      dropdown: [
+        { label: "MENOPAUSE" },
+        { label: "PCOS/PCOD" },
+        { label: "WHITE DISCHARGE" },
+      ],
     },
     {
       label: "MENS PROBLEMS",
-      href: "#",
-      dropdown: ["PROSTATE PROBLEM", "SEXUAL ISSUE"],
+      dropdown: [{ label: "PROSTATE PROBLEM" }, { label: "SEXUAL ISSUE" }],
     },
     {
       label: "TREATMENT",
-      href: "#",
       dropdown: [
-        "DIABETES",
-        "HYPERTENSION / BP",
-        "JOINT PAIN",
-        "LIVER / KIDNEY",
-        "PROSTATE",
+        { label: "DIABETES" },
+        { label: "HYPERTENSION / BP" },
+        {
+          label: "JOINT PAIN",
+          subDropdown: [
+            "ANKYLOSING SPONDYLITIS",
+            "ARTHRITIS",
+            "OSTEOARTHRITIS",
+            "OSTEOPOROSIS",
+          ],
+        },
+        {
+          label: "LIVER / KIDNEY",
+          subDropdown: ["CREATININE", "FATTY LIVER"],
+        },
+        { label: "PROSTATE" },
       ],
     },
-    { label: "OFFER ZONE", href: "#" },
+    { label: "OFFER ZONE" },
   ];
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      dispatch(getProduct({ keyword: keyword.trim() }));
+      dispatch(
+        getProduct({ keyword: keyword.trim(), category: category || "" }),
+      ).then((data) => console.log(data));
     }, 500);
     return () => clearTimeout(timer);
-  }, [keyword]);
+  }, [keyword, category, dispatch]);
 
   const handleSearchChange = (e) => {
     setKeyword(e.target.value);
   };
-
+  const handleCategoryClick = (category) => {
+    setIsOpen(false);
+    setActiveDropdown(null);
+    navigate(`/?category=${encodeURIComponent(category)}`);
+  };
   return (
     <>
       <style>{`
@@ -138,7 +165,7 @@ export default function Navbar({ onMenuClick }) {
             </div>
 
             {/* CENTER: desktop nav links */}
-            <div className="hidden lg:flex items-center gap-7 flex-1 justify-center">
+            {/* <div className="hidden lg:flex items-center gap-7 flex-1 justify-center">
               {navItems.map((item) => (
                 <div key={item.label} className="relative group">
                   <button className="text-gray-800 font-semibold text-sm hover:text-gray-600 flex items-center gap-1 transition-colors whitespace-nowrap">
@@ -148,13 +175,62 @@ export default function Navbar({ onMenuClick }) {
                   {item.dropdown && (
                     <div className="absolute left-0 top-full mt-1 w-44 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
                       {item.dropdown.map((sub) => (
-                        <a
+                        <button
                           key={sub}
-                          href="#"
+                          onClick={() => handleCategoryClick(sub)}
                           className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-lime-50 hover:text-green-800 transition-colors first:rounded-t-lg last:rounded-b-lg"
                         >
                           {sub}
-                        </a>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div> */}
+            {/* CENTER: desktop nav links */}
+            <div className="hidden lg:flex items-center gap-7 flex-1 justify-center">
+              {navItems.map((item) => (
+                <div key={item.label} className="relative group">
+                  <button
+                    onClick={() => handleCategoryClick(item.label)}
+                    className="text-gray-800 font-semibold text-sm hover:text-gray-600 flex items-center gap-1 transition-colors whitespace-nowrap"
+                  >
+                    {item.label}
+                    {item.dropdown && <ChevronDown size={15} />}
+                  </button>
+
+                  {item.dropdown && (
+                    <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+                      {item.dropdown.map((sub) => (
+                        // ✅ CHANGE: ab sub object hai, string nahi
+                        <div key={sub.label} className="relative group/sub">
+                          <button
+                            onClick={() =>
+                              !sub.subDropdown && handleCategoryClick(sub.label)
+                            }
+                            className="w-full text-left flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 hover:bg-lime-50 hover:text-green-800 transition-colors"
+                          >
+                            {sub.label}
+                            {sub.subDropdown && <ChevronRight size={13} />}{" "}
+                            {/* ✅ arrow agar nested hai */}
+                          </button>
+
+                          {/* ✅ Nested dropdown — left se right mein khulega */}
+                          {sub.subDropdown && (
+                            <div className="absolute left-full top-0 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 z-30">
+                              {sub.subDropdown.map((nested) => (
+                                <button
+                                  key={nested}
+                                  onClick={() => handleCategoryClick(nested)}
+                                  className="w-full text-left block px-4 py-2.5 text-sm text-gray-700 hover:bg-lime-50 hover:text-green-800 first:rounded-t-lg last:rounded-b-lg"
+                                >
+                                  {nested}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   )}
@@ -177,12 +253,13 @@ export default function Navbar({ onMenuClick }) {
                   size={16}
                 />
               </div>
-              <div className="relative cursor-pointer">
+              {/* <div className="relative cursor-pointer">
                 <ShoppingCart className="text-gray-800" size={22} />
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   0
                 </span>
-              </div>
+              </div> */}
+              <CartDropdown />
               {user?.name ? (
                 <button
                   onClick={() => navigate("/profile")}

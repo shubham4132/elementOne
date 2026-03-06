@@ -22,13 +22,29 @@ const initialFormData = {
 const STEPS = ["Basic Info", "Description", "Ingredients", "Media & Launch"];
 
 const CATEGORIES = [
-  "Supplements",
-  "Ayurvedic",
-  "Weight Loss",
-  "Nutrition",
-  "Immunity",
-  "Skincare",
-  "Haircare",
+  "AYURVEDA",
+  "ONCO NUTRITION",
+  "WEIGHT LOSS/OBESITY",
+  "CHILD NUTRITION", // ✅ parent category
+  "ANGRY BEHAVIOUR", // ✅ child nutrition ke andar
+  "HEIGHT GROWTH", // ✅ child nutrition ke andar
+  "MENOPAUSE",
+  "PCOS/PCOD",
+  "WHITE DISCHARGE",
+  "PROSTATE PROBLEM",
+  "SEXUAL ISSUE",
+  "DIABETES",
+  "HYPERTENSION / BP",
+  "JOINT PAIN", // ✅ parent category
+  "ANKYLOSING SPONDYLITIS", // ✅ joint pain ke andar
+  "ARTHRITIS", // ✅ joint pain ke andar
+  "OSTEOARTHRITIS", // ✅ joint pain ke andar
+  "OSTEOPOROSIS", // ✅ joint pain ke andar
+  "LIVER / KIDNEY", // ✅ parent category
+  "CREATININE", // ✅ liver/kidney ke andar
+  "FATTY LIVER", // ✅ liver/kidney ke andar
+  "PROSTATE",
+  "OFFER ZONE",
 ];
 
 // ── Tokens ──────────────────────────────────────────────────────

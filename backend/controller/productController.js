@@ -70,7 +70,9 @@ export const createProducts = handleAsyncError(async (req, res, next) => {
 });
 
 export const getAllProducts = handleAsyncError(async (req, res, next) => {
-  const apiFeatures = new APIFunctionality(Product.find(), req.query).search(); // sirf search karo
+  const apiFeatures = new APIFunctionality(Product.find(), req.query)
+    .search()
+    .filter(); // sirf search karo
 
   const productCount = await apiFeatures.query.clone().countDocuments();
 
@@ -87,6 +89,18 @@ export const getAllProducts = handleAsyncError(async (req, res, next) => {
   });
 });
 
+//Accessing Single Product
+export const getSingleProduct = handleAsyncError(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    return next(new HandleError("Product Not Found", 404));
+  }
+  res.status(200).json({
+    success: true,
+    product,
+  });
+});
+
 //for admin side
 export const getAdminProducts = handleAsyncError(async (req, res, next) => {
   const products = await Product.find();
@@ -95,57 +109,7 @@ export const getAdminProducts = handleAsyncError(async (req, res, next) => {
     products,
   });
 });
-// export const updateProduct = handleAsyncError(async (req, res, next) => {
-//   let product = await Product.findById(req.params.id);
-//   if (!product) {
-//     return next(new HandleError("Product Not Found", 404));
-//   }
 
-//   // ✅ Agar nayi images aayi hain
-//   if (req.files && req.files.images) {
-//     // Pehle purani images cloudinary se delete karo
-//     for (let i = 0; i < product.image.length; i++) {
-//       await cloudinary.uploader.destroy(product.image[i].public_id);
-//     }
-
-//     // ✅ createProduct jaisa — buffer se upload
-//     const images = Array.isArray(req.files.images)
-//       ? req.files.images
-//       : [req.files.images];
-
-//     const imageLinks = [];
-//     for (let i = 0; i < images.length; i++) {
-//       const result = await new Promise((resolve, reject) => {
-//         const stream = cloudinary.uploader.upload_stream(
-//           { folder: "products" },
-//           (error, result) => {
-//             if (error) reject(error);
-//             else resolve(result);
-//           },
-//         );
-//         stream.end(images[i].data); // ✅ Buffer
-//       });
-
-//       imageLinks.push({
-//         public_id: result.public_id,
-//         url: result.secure_url,
-//       });
-//     }
-
-//     req.body.image = imageLinks; // ✅ Nayi images set karo
-//   }
-
-//   // Baaki sab fields update
-//   product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-//     new: true,
-//     runValidators: true,
-//   });
-
-//   res.status(200).json({
-//     success: true,
-//     product,
-//   });
-// });
 export const deleteProduct = handleAsyncError(async (req, res, next) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) {
@@ -159,62 +123,6 @@ export const deleteProduct = handleAsyncError(async (req, res, next) => {
     message: "Product Deleted successfully",
   });
 });
-// export const updateProduct = handleAsyncError(async (req, res, next) => {
-//   let product = await Product.findById(req.params.id);
-//   if (!product) {
-//     return next(new HandleError("Product Not Found", 404));
-//   }
-
-//   // Parse ingredients aur benefits
-//   if (req.body.ingredients && typeof req.body.ingredients === "string") {
-//     req.body.ingredients = JSON.parse(req.body.ingredients);
-//   }
-//   if (req.body.benefits && typeof req.body.benefits === "string") {
-//     req.body.benefits = JSON.parse(req.body.benefits);
-//   }
-
-//   // ✅ MAIN FIX: Nayi images aayi hain toh purani ke SAATH add karo
-//   if (req.files && req.files.images) {
-//     const images = Array.isArray(req.files.images)
-//       ? req.files.images
-//       : [req.files.images];
-
-//     // ✅ Nayi images cloudinary pe upload karo
-//     const newImageLinks = [];
-//     for (let i = 0; i < images.length; i++) {
-//       const result = await new Promise((resolve, reject) => {
-//         const stream = cloudinary.uploader.upload_stream(
-//           { folder: "products" },
-//           (error, result) => {
-//             if (error) reject(error);
-//             else resolve(result);
-//           },
-//         );
-//         stream.end(images[i].data);
-//       });
-
-//       newImageLinks.push({
-//         public_id: result.public_id,
-//         url: result.secure_url,
-//       });
-//     }
-
-//     // ✅ Puraani images + nayi images = sab saath
-//     req.body.image = [...product.image, ...newImageLinks];
-//   }
-//   // ✅ Agar koi nayi image nahi aayi toh puraani images as-is rehti hain
-//   // (req.body.image set nahi hoga, findByIdAndUpdate purani value rakhega)
-
-//   product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-//     new: true,
-//     runValidators: true,
-//   });
-
-//   res.status(200).json({
-//     success: true,
-//     product,
-//   });
-// });
 
 export const updateProduct = handleAsyncError(async (req, res, next) => {
   let product = await Product.findById(req.params.id);

@@ -17,12 +17,15 @@ import axios from "axios";
 
 export const getProduct = createAsyncThunk(
   "product/getProduct",
-  async ({ keyword }, { rejectWithValue }) => {
+  async ({ keyword, category }, { rejectWithValue }) => {
     try {
       let link = "/api/v1/products";
 
       if (keyword) {
         link += `?keyword=${keyword}`;
+      }
+      if (category) {
+        link += `?category=${category}`;
       }
 
       const { data } = await axios.get(link);

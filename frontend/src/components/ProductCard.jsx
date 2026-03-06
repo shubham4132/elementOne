@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addItemsToCart } from "../features/cart/cartSlice";
 
 export function ProductCard({
   image,
@@ -7,14 +9,18 @@ export function ProductCard({
   discountedPrice,
   salePercentage,
   onViewDetails,
+  product,
 }) {
   const [adding, setAdding] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
+
+  const dispatch = useDispatch();
 
   const handleAddToBasket = (e) => {
     e.stopPropagation();
     setAdding(true);
     setTimeout(() => setAdding(false), 1200);
+    dispatch(addItemsToCart({ id: product._id, quantity: 1 }));
   };
 
   const handleWishlist = (e) => {
