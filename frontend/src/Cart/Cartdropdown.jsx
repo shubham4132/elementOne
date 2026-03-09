@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { removeItemFromCart } from "../features/cart/cartSlice";
+import { removeItemFromCart, updateQuantity } from "../features/cart/cartSlice";
 // import { removeFromCart, updateQuantity } from "../features/cart/cartSlice";
 
 export default function CartDropdown() {
@@ -67,7 +67,18 @@ export default function CartDropdown() {
 
   const handleQuantityChange = (id, delta) => {
     // dispatch(updateQuantity({ id, delta }));
-    console.log("Quantity change:", id, delta);
+    const item = cartItems.find((i) => i.product === id);
+    if (!item) return;
+    const newQuantity = item.quantity + delta;
+    if (newQuantity < 1) {
+      dispatch(removeItemFromCart(id));
+      return;
+    }
+    if (newQuantity > item.stock) {
+      alert("stock is not available");
+      return;
+    }
+    dispatch(updateQuantity({ id, quantity: newQuantity }));
   };
 
   const handleCheckout = () => {
@@ -170,7 +181,9 @@ export default function CartDropdown() {
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
                             <button
-                              onClick={() => handleQuantityChange(item._id, -1)}
+                              onClick={() =>
+                                handleQuantityChange(item.product, -1)
+                              }
                               className="w-6 h-6 rounded-md bg-white shadow-sm flex items-center justify-center hover:bg-lime-50 transition-colors"
                             >
                               <Minus size={11} className="text-gray-600" />

@@ -12,6 +12,7 @@ import AdminProducts from "./Admin/pages/AdminProducts";
 import ProductDetails from "./pages/Product/ProductDetails";
 import Products from "./pages/Product/Products";
 import AdminEditProduct from "./Admin/pages/AdminEditProduct";
+import Checkout from "./pages/Order/checkout";
 
 export default function App() {
   const { user } = useSelector((state) => state.user);
@@ -31,6 +32,7 @@ export default function App() {
         />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/checkout" element={<Checkout />} />
         {/* Admin Routes */}
         <Route
           path="/admin/dashboard"

@@ -45,6 +45,14 @@ const cartSlice = createSlice({
       localStorage.setItem("cartItems", JSON.stringify(state.cartItems));
       state.removingId = null;
     },
+    updateQuantity: (state, action) => {
+      // action.payload = { id: "69a303...", quantity: 2 }
+      const item = state.cartItems.find((i) => i.product === action.payload.id);
+      if (item) {
+        item.quantity = action.payload.quantity;
+      }
+      localStorage.setItem("cartItems", JSON.stringify(state.cartItems));
+    },
     clearCart: (state) => {
       state.cartItems = [];
       localStorage.removeItem("cartItems");
@@ -78,5 +86,6 @@ const cartSlice = createSlice({
       });
   },
 });
-export const { removeItemFromCart } = cartSlice.actions;
+export const { removeItemFromCart, updateQuantity, clearCart } =
+  cartSlice.actions;
 export default cartSlice.reducer;
