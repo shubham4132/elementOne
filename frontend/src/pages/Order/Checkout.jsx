@@ -19,6 +19,7 @@ import {
   Banknote,
   Loader2,
 } from "lucide-react";
+import { createOrder } from "../../features/order/orderSlice";
 
 const STATES = [
   "Andhra Pradesh",
@@ -65,8 +66,8 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
-  const [loading, setLoading] = useState(false);
-
+  // const [loading, setLoading] = useState(false);
+  const { loading } = useSelector((state) => state.order);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -107,59 +108,187 @@ export default function Checkout() {
     return Object.keys(e).length === 0;
   };
 
+  // const handlePlaceOrder = async () => {
+  //   if (!validate()) return;
+
+  //   // ✅ COD — seedha order place
+  //   if (paymentMethod === "cod") {
+  //     setOrderPlaced(true);
+  //     dispatch(clearCart());
+  //     setTimeout(() => navigate("/"), 4000);
+  //     return;
+  //   }
+
+  //   // ✅ Razorpay — online payment
+  //   try {
+  //     setLoading(true);
+
+  //     const { data } = await axios.post(
+  //       "/api/v1/payment/razorpay",
+  //       { amount: total },
+  //       { withCredentials: true },
+  //     );
+
+  //     const options = {
+  //       key: data.key,
+  //       amount: data.order.amount,
+  //       currency: "INR",
+  //       name: "Element One Nutrition",
+  //       description: "Order Payment",
+  //       order_id: data.order.id,
+  //       prefill: {
+  //         name: `${form.firstName} ${form.lastName}`,
+  //         email: form.email,
+  //         contact: form.phone,
+  //       },
+  //       theme: { color: "#a3e635" },
+  //       handler: () => {
+  //         setLoading(false);
+  //         setOrderPlaced(true);
+  //         dispatch(clearCart());
+  //         setTimeout(() => navigate("/"), 4000);
+  //       },
+  //       modal: {
+  //         ondismiss: () => setLoading(false),
+  //       },
+  //     };
+
+  //     const rzp = new window.Razorpay(options);
+  //     rzp.open();
+  //   } catch (error) {
+  //     setLoading(false);
+  //     alert("Payment failed! Please try again.");
+  //   }
+  // };
   const handlePlaceOrder = async () => {
     if (!validate()) return;
 
-    // ✅ COD — seedha order place
     if (paymentMethod === "cod") {
-      setOrderPlaced(true);
-      dispatch(clearCart());
-      setTimeout(() => navigate("/"), 4000);
+      const result = await dispatch(
+        createOrder({
+          shippingInfo: form,
+          orderItems: cartItems.map((i) => ({
+            product: i.product,
+            name: i.name,
+            image: i.image,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          paymentMethod: "cod",
+          subtotal,
+          discount,
+          shippingPrice: shipping,
+          totalAmount: total,
+        }),
+      );
+
+      if (result.meta.requestStatus === "fulfilled") {
+        setOrderPlaced(true);
+        dispatch(clearCart());
+        setTimeout(() => navigate("/"), 4000);
+      } else {
+        alert("Order failed! Please try again.");
+      }
       return;
     }
 
-    // ✅ Razorpay — online payment
+    // Razorpay — baad mein karenge
+    // ── RAZORPAY ──
     try {
-      setLoading(true);
-
-      const { data } = await axios.post(
-        "/api/v1/payment/razorpay",
-        { amount: total },
-        { withCredentials: true },
-      );
+      const [{ data: keyData }, { data: orderData }] = await Promise.all([
+        axios.get("/api/v1/getKey", { withCredentials: true }),
+        axios.post(
+          "/api/v1/payment/process",
+          { amount: total },
+          { withCredentials: true },
+        ),
+      ]);
 
       const options = {
-        key: data.key,
-        amount: data.order.amount,
+        key: keyData.key,
+        amount: orderData.order.amount,
         currency: "INR",
         name: "Element One Nutrition",
         description: "Order Payment",
-        order_id: data.order.id,
+        order_id: orderData.order.id,
         prefill: {
           name: `${form.firstName} ${form.lastName}`,
           email: form.email,
           contact: form.phone,
         },
         theme: { color: "#a3e635" },
-        handler: () => {
-          setLoading(false);
-          setOrderPlaced(true);
-          dispatch(clearCart());
-          setTimeout(() => navigate("/"), 4000);
+
+        handler: async ({
+          razorpay_payment_id,
+          razorpay_order_id,
+          razorpay_signature,
+        }) => {
+          try {
+            // Step 1: Signature verify karo
+            const { data: verifyData } = await axios.post(
+              "/api/v1/paymentVerification",
+              { razorpay_payment_id, razorpay_order_id, razorpay_signature },
+              { withCredentials: true },
+            );
+
+            if (!verifyData.success) {
+              alert("Payment verification failed! Contact support.");
+              return;
+            }
+
+            // Step 2: Verify OK → Order DB mein save karo
+            const result = await dispatch(
+              createOrder({
+                shippingInfo: form,
+                orderItems: cartItems.map((i) => ({
+                  product: i.product,
+                  name: i.name,
+                  image: i.image,
+                  price: i.price,
+                  quantity: i.quantity,
+                })),
+                paymentMethod: "razorpay",
+                paymentInfo: {
+                  id: razorpay_payment_id, // ← reference ID ✅
+                  orderId: razorpay_order_id,
+                  status: "paid",
+                },
+                subtotal,
+                discount,
+                shippingPrice: shipping,
+                totalAmount: total,
+              }),
+            );
+
+            // Step 3: Order saved → Success screen
+            if (result.meta.requestStatus === "fulfilled") {
+              setOrderPlaced(true);
+              dispatch(clearCart());
+              setTimeout(() => navigate("/"), 4000);
+            } else {
+              alert(
+                `Order save failed! Payment successful. Contact support with ID: ${razorpay_payment_id}`,
+              );
+            }
+          } catch (err) {
+            alert(
+              `Something went wrong! Payment ID: ${razorpay_payment_id}. Please contact support.`,
+            );
+          }
         },
+
         modal: {
-          ondismiss: () => setLoading(false),
+          ondismiss: () => console.log("Payment cancelled by user"),
         },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      setLoading(false);
-      alert("Payment failed! Please try again.");
+      console.error(error);
+      alert("Payment initialization failed! Please try again.");
     }
   };
-
   const applyCoupon = () => {
     if (coupon.toUpperCase() === "GET10") {
       setCouponApplied(true);
