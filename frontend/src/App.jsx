@@ -13,6 +13,7 @@ import ProductDetails from "./pages/Product/ProductDetails";
 import Products from "./pages/Product/Products";
 import AdminEditProduct from "./Admin/pages/AdminEditProduct";
 import Checkout from "./pages/Order/checkout";
+import OrderSuccess from "./pages/Order/OrderSuccess";
 
 export default function App() {
   const { user } = useSelector((state) => state.user);
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/products" element={<Products />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order/success" element={<OrderSuccess />} />
         {/* Admin Routes */}
         <Route
           path="/admin/dashboard"

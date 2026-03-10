@@ -163,6 +163,7 @@ export default function Checkout() {
   const handlePlaceOrder = async () => {
     if (!validate()) return;
 
+    // ── COD ── (same as before)
     if (paymentMethod === "cod") {
       const result = await dispatch(
         createOrder({
@@ -192,9 +193,9 @@ export default function Checkout() {
       return;
     }
 
-    // Razorpay — baad mein karenge
     // ── RAZORPAY ──
     try {
+      // ✅ Pehle key aur order dono lo — jo pehle comment out tha
       const [{ data: keyData }, { data: orderData }] = await Promise.all([
         axios.get("/api/v1/getKey", { withCredentials: true }),
         axios.post(
@@ -204,9 +205,29 @@ export default function Checkout() {
         ),
       ]);
 
+      // ✅ sessionStorage mein save karo rzp.open() se pehle
+      sessionStorage.setItem(
+        "pendingOrder",
+        JSON.stringify({
+          shippingInfo: form,
+          orderItems: cartItems.map((i) => ({
+            product: i.product,
+            name: i.name,
+            image: i.image,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          paymentMethod: "razorpay",
+          subtotal,
+          discount,
+          shippingPrice: shipping,
+          totalAmount: total,
+        }),
+      );
+
       const options = {
-        key: keyData.key,
-        amount: orderData.order.amount,
+        key: keyData.key, // ✅ ab defined hai
+        amount: orderData.order.amount, // ✅ ab defined hai
         currency: "INR",
         name: "Element One Nutrition",
         description: "Order Payment",
@@ -218,62 +239,26 @@ export default function Checkout() {
         },
         theme: { color: "#a3e635" },
 
-        handler: async ({
-          razorpay_payment_id,
-          razorpay_order_id,
-          razorpay_signature,
-        }) => {
+        // ✅ Handler — sirf verify + navigate, koi dispatch nahi
+        handler: async (response) => {
           try {
-            // Step 1: Signature verify karo
-            const { data: verifyData } = await axios.post(
+            const { data } = await axios.post(
               "/api/v1/paymentVerification",
-              { razorpay_payment_id, razorpay_order_id, razorpay_signature },
+              {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              },
               { withCredentials: true },
             );
 
-            if (!verifyData.success) {
-              alert("Payment verification failed! Contact support.");
-              return;
-            }
-
-            // Step 2: Verify OK → Order DB mein save karo
-            const result = await dispatch(
-              createOrder({
-                shippingInfo: form,
-                orderItems: cartItems.map((i) => ({
-                  product: i.product,
-                  name: i.name,
-                  image: i.image,
-                  price: i.price,
-                  quantity: i.quantity,
-                })),
-                paymentMethod: "razorpay",
-                paymentInfo: {
-                  id: razorpay_payment_id, // ← reference ID ✅
-                  orderId: razorpay_order_id,
-                  status: "paid",
-                },
-                subtotal,
-                discount,
-                shippingPrice: shipping,
-                totalAmount: total,
-              }),
-            );
-
-            // Step 3: Order saved → Success screen
-            if (result.meta.requestStatus === "fulfilled") {
-              setOrderPlaced(true);
-              dispatch(clearCart());
-              setTimeout(() => navigate("/"), 4000);
+            if (data.success) {
+              navigate(`/order/success?reference=${data.reference}`);
             } else {
-              alert(
-                `Order save failed! Payment successful. Contact support with ID: ${razorpay_payment_id}`,
-              );
+              alert("Payment verification failed! Contact support.");
             }
           } catch (err) {
-            alert(
-              `Something went wrong! Payment ID: ${razorpay_payment_id}. Please contact support.`,
-            );
+            alert("Verification error! Contact support.");
           }
         },
 

@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema(
       email: { type: String, required: true },
       phone: { type: String, required: true },
       address: { type: String, required: true },
-      address2: { type: String },
+      address2: { type: String, default: "" },
       city: { type: String, required: true },
       state: { type: String, required: true },
       pincode: { type: String, required: true },
@@ -28,21 +28,32 @@ const orderSchema = new mongoose.Schema(
           required: true,
         },
         name: { type: String, required: true },
-        image: { type: String },
+        image: { type: String, default: "" },
         price: { type: Number, required: true },
-        quantity: { type: Number, required: true },
+        quantity: { type: Number, required: true, min: 1 },
       },
     ],
 
-    paymentMethod: { type: String, enum: ["cod", "razorpay"], required: true },
+    paymentMethod: {
+      type: String,
+      enum: ["cod", "razorpay"],
+      required: true,
+    },
+
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
-    razorpayOrderId: { type: String },
-    razorpayPaymentId: { type: String },
-    paidAt: { type: Date },
+
+    // Razorpay specific — sirf razorpay orders mein populate hoga
+    paymentInfo: {
+      razorpayPaymentId: { type: String, default: null },
+      razorpayOrderId: { type: String, default: null },
+      razorpaySignature: { type: String, default: null },
+    },
+
+    paidAt: { type: Date, default: null },
 
     subtotal: { type: Number, required: true },
     discount: { type: Number, default: 0 },
@@ -51,12 +62,34 @@ const orderSchema = new mongoose.Schema(
 
     orderStatus: {
       type: String,
-      enum: ["processing", "shipped", "delivered", "cancelled"],
+      enum: [
+        "processing",
+        "shipped",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
       default: "processing",
     },
-    deliveredAt: { type: Date },
+
+    statusHistory: [
+      {
+        status: { type: String },
+        changedAt: { type: Date, default: Date.now },
+        note: { type: String, default: "" },
+      },
+    ],
+
+    deliveredAt: { type: Date, default: null },
+    cancelledAt: { type: Date, default: null },
+    cancellationReason: { type: String, default: "" },
   },
   { timestamps: true },
 );
+
+// ── Indexes ──
+orderSchema.index({ user: 1, createdAt: -1 }); // user ke orders newest first
+orderSchema.index({ orderStatus: 1 }); // admin panel filtering
+orderSchema.index({ "paymentInfo.razorpayPaymentId": 1 }); // payment lookup
 
 export default mongoose.model("Order", orderSchema);
