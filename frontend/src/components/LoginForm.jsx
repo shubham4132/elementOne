@@ -15,30 +15,24 @@ export default function LoginForm({ onSwitchToRegister }) {
   const navigate = useNavigate();
   function handleSubmit(e) {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Email:", email);
-    console.log("Password:", password);
     dispatch(login({ email: email, password: password })).then((data) => {
-      console.log(data);
+      if (data?.payload?.success) {
+        const role = data?.payload?.user?.role;
+        toast.success("Login Successful! 🎉", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+        setTimeout(() => {
+          if (role === "admin") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 1500);
+      }
     });
   }
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch(removeErrors());
-    }
-  }, [dispatch, error]);
-  useEffect(() => {
-    if (success) {
-      toast.success("Login Successful");
-      if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
-      dispatch(removeSuccess());
-    }
-  }, [dispatch, success, user, navigate]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Email Field */}

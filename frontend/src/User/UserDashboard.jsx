@@ -8,8 +8,8 @@ import Products from "../pages/Product/Products";
 export default function Dashboard() {
   const { user } = useSelector((state) => state.user);
 
-  // Desktop: default open (true), Mobile: default closed (false)
-  const [isOpen, setIsOpen] = useState(window.innerWidth >= 1024);
+  // Default closed (false) for all screen sizes
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen">

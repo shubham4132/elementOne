@@ -67,7 +67,7 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: "",
-    maxLength: [3000, "Long description cannot exceed 3000 characters"],
+    maxLength: [50000, "Long description cannot exceed 3000 characters"],
   },
 
   // ── STEP 3 : Ingredients & Benefits ────────────────────────────

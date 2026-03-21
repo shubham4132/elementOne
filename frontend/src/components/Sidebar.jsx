@@ -1,53 +1,81 @@
 import {
   LayoutDashboard,
   ShoppingBag,
-  Download,
   MapPin,
   Settings,
   Heart,
-  Scale,
   LogOut,
   X,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 import { logout } from "../features/user/userSlice";
+import { useEffect, useRef } from "react";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "#" },
-  { icon: ShoppingBag, label: "Orders", href: "#" },
-  { icon: Download, label: "Downloads", href: "#" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: ShoppingBag, label: "Orders", href: "/order" },
   { icon: MapPin, label: "Addresses", href: "#" },
   { icon: Settings, label: "Account Details", href: "#" },
-  { icon: Heart, label: "Wishlist", href: "#" },
-  { icon: Scale, label: "Compare", href: "#" },
+  { icon: Heart, label: "Wishlist", href: "/wishlist" },
 ];
 
 export default function Sidebar({ isOpen, onClose, user }) {
   const dispatch = useDispatch();
-  const handleLogout = () => dispatch(logout());
+  const navigate = useNavigate();
+  const location = useLocation();
+  const sidebarRef = useRef(null);
+
+  const handleLogout = async (e) => {
+    e.stopPropagation();
+    await dispatch(logout());
+    toast.success("Logout Successful! 👋", {
+      position: "top-right",
+      autoClose: 1500,
+    });
+    onClose();
+    setTimeout(() => {
+      navigate("/");
+    }, 1500);
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        isOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   return (
     <>
-      {/* Backdrop — mobile only */}
+      {/* Backdrop */}
       <div
         onClick={onClose}
         aria-hidden="true"
         className={`
-          fixed inset-0 z-40 bg-black/50
-          transition-opacity duration-300 ease-in-out lg:hidden
+          fixed inset-0 z-40 bg-[#0c2f40]/40
+          transition-all duration-300 ease-in-out lg:hidden
           ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
         `}
       />
 
-      {/*
-        Sidebar — fixed position (document flow se bahar hai)
-        Wrapper div Dashboard mein w-64/w-0 se space handle karti hai
-      */}
       <aside
+        ref={sidebarRef}
+        style={{ height: "100dvh" }}
         className={`
-          fixed top-0 left-0 z-50 h-full w-64
-          bg-white flex flex-col shadow-2xl
-          transition-transform duration-300 ease-in-out
+          fixed top-0 left-0 z-50 w-64
+          bg-white flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.06)] 
+          transition-transform duration-300 ease-out border-r border-slate-100
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
@@ -55,72 +83,81 @@ export default function Sidebar({ isOpen, onClose, user }) {
         <button
           onClick={onClose}
           aria-label="Close sidebar"
-          className="absolute top-3 right-3 w-8 h-8 rounded-lg z-10
+          className="absolute top-4 right-4 w-8 h-8 rounded-full z-20
                      bg-white/10 hover:bg-white/25 flex items-center justify-center
-                     text-white transition-colors"
+                     text-white transition-all duration-200 lg:hidden"
         >
-          <X size={16} />
+          <X size={18} />
         </button>
 
         {/* User profile header */}
-        <div className="bg-gradient-to-br from-[#1B5E87] to-[#0c2f40] px-5 pt-8 pb-6 flex-shrink-0">
-          <div className="flex flex-col items-center text-center">
+        <div className="relative bg-gradient-to-br from-[#1B5E87] via-[#154868] to-[#0c2f40] px-6 pt-10 pb-8 flex-shrink-0 overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center text-center">
             <div
-              className="w-20 h-20 rounded-full bg-white/20 border-2 border-white/40
-                            flex items-center justify-center mb-3 shadow-lg"
+              className="w-20 h-20 rounded-full bg-white/10 border-[3px] border-white/30
+                            flex items-center justify-center mb-4 shadow-[0_8px_16px_rgba(0,0,0,0.2)] ring-4 ring-black/5"
             >
-              <span className="text-4xl select-none">👤</span>
+              <span className="text-4xl select-none drop-shadow-md">👤</span>
             </div>
-            <h3 className="font-bold text-white text-sm truncate w-full">
+            <h3 className="font-bold text-white text-[15px] tracking-wide truncate w-full drop-shadow-sm">
               {user?.name ?? "Guest User"}
             </h3>
-            <p className="text-white/60 text-xs mt-0.5 truncate w-full">
+            <p className="text-white/70 text-xs mt-1 font-medium truncate w-full hover:text-white transition-colors">
               {user?.email ?? "guest@example.com"}
             </p>
           </div>
         </div>
 
         {/* Nav menu */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
-          {menuItems.map((item, index) => {
+        <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-1.5">
+          {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = index === 0;
+            const isActive = location.pathname === item.href;
             return (
-              <a
+              <button
                 key={item.label}
-                href={item.href}
+                onClick={() => {
+                  onClose();
+                  navigate(item.href);
+                }}
                 className={`
-                  flex items-center gap-3 py-2.5 px-3.5 rounded-xl
-                  text-sm font-semibold transition-all duration-150
+                  w-full relative flex items-center gap-3.5 py-3 px-4 rounded-xl group
+                  text-sm font-medium transition-all duration-200
                   ${
                     isActive
-                      ? "bg-[#1B5E87]/10 text-[#1B5E87] border-l-2 border-[#1B5E87]/60"
-                      : "text-gray-500 border-l-2 border-transparent hover:bg-gray-50 hover:text-gray-800"
+                      ? "bg-gradient-to-r from-[#1B5E87]/10 to-transparent text-[#1B5E87] shadow-[inset_3px_0_0_#1B5E87]"
+                      : "text-slate-500 border border-transparent hover:bg-slate-50 hover:text-slate-800 hover:shadow-[inset_3px_0_0_#cbd5e1]"
                   }
                 `}
               >
                 <Icon
                   size={18}
-                  className="flex-shrink-0"
-                  strokeWidth={isActive ? 2 : 1.5}
+                  className={`flex-shrink-0 transition-all duration-300 ${isActive ? "" : "group-hover:scale-110 group-hover:-translate-y-0.5"}`}
+                  strokeWidth={isActive ? 2.5 : 2}
                 />
-                <span>{item.label}</span>
-              </a>
+                <span className="tracking-wide">{item.label}</span>
+              </button>
             );
           })}
         </nav>
 
         {/* Logout */}
-        <div className="px-4 py-4 border-t border-gray-100 flex-shrink-0">
+        <div className="flex-shrink-0 p-4 border-t border-slate-100 bg-slate-50/50">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 text-sm font-semibold
-                       text-red-400 hover:text-white hover:bg-red-500
-                       border border-red-100 hover:border-red-500
-                       py-2.5 rounded-xl transition-all duration-200"
+            className="w-full flex items-center justify-center gap-2.5 text-sm font-medium
+                       text-slate-500 hover:text-red-600 hover:bg-red-50 hover:shadow-sm group
+                       border border-transparent hover:border-red-100
+                       py-3 rounded-xl transition-all duration-200"
           >
-            <LogOut size={16} strokeWidth={1.8} />
-            Log out
+            <LogOut
+              size={18}
+              strokeWidth={2.2}
+              className="transition-transform duration-200 group-hover:-translate-x-1"
+            />
+            <span className="tracking-wide">Log Out</span>
           </button>
         </div>
       </aside>

@@ -18,7 +18,6 @@ export default function CartDropdown() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.cart);
-  console.log(cartItems, "cartItems");
 
   // ✅ Dummy data — baad mein Redux se replace karo
   // const cartItems = [

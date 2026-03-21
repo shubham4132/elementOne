@@ -35,6 +35,19 @@ export const fetchAdminProducts = createAsyncThunk(
   },
 );
 
+//Fetch All Orders
+export const fetchAllOrders = createAsyncThunk(
+  "admin/fetchAllOrders",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`/api/v1/admin/orders`);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to Fetch Orders");
+    }
+  },
+);
+
 export const updateProduct = createAsyncThunk(
   "admin/updateProduct",
   async ({ id, formData }, { rejectWithValue }) => {
@@ -78,6 +91,7 @@ const adminSlice = createSlice({
     message: null,
     products1: [],
     product: {},
+    orders: [],
   },
   reducers: {
     removeErrors: (state) => {
@@ -152,6 +166,21 @@ const adminSlice = createSlice({
         const productId = action.meta.arg;
         state.deleting[productId] = false;
         state.error = action.payload?.message || "Product Deletion Failed";
+      });
+
+    builder
+      .addCase(fetchAllOrders.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = action.payload.orders;
+        state.totalAmount = action.payload.totalAmount;
+      })
+      .addCase(fetchAllOrders.rejected, (state, action) => {
+        ((state.loading = false),
+          (state.error = action.payload?.message || "Failed to Fetch Orders"));
       });
   },
 });

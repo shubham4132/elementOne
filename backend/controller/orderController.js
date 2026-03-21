@@ -47,3 +47,30 @@ export const createOrder = handleAsyncError(async (req, res, next) => {
     order,
   });
 });
+
+export const allMyOrders = handleAsyncError(async (req, res, next) => {
+  const orders = await Order.find({ user: req.user._id });
+  if (!orders) {
+    return next(new HandleError("No order found", 404));
+  }
+  res.status(200).json({
+    success: true,
+    orders,
+  });
+});
+
+//Getting all orders
+export const getAllOrders = handleAsyncError(async (req, res, next) => {
+  const orders = await Order.find().populate("user", "name email phone"); // ← yeh line change ki
+
+  let totalAmount = 0;
+  orders.forEach((order) => {
+    totalAmount += order.totalAmount; // ← totalPrice tha, totalAmount kiya
+  });
+
+  res.status(200).json({
+    success: true,
+    orders,
+    totalAmount,
+  });
+});

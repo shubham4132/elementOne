@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { register, removeSuccess } from "../features/user/userSlice";
+import {
+  register,
+  removeErrors,
+  removeSuccess,
+} from "../features/user/userSlice";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 export default function RegisterForm({ onSwitchToLogin }) {
@@ -19,17 +23,15 @@ export default function RegisterForm({ onSwitchToLogin }) {
 
   function handleSubmit(e) {
     e.preventDefault();
-
-    // ✅ Password match validation
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
-
-    // Handle register logic here
-    console.log("Register Data:", formData);
     dispatch(register(formData)).then((data) => {
-      console.log(data);
+      if (data?.payload?.success) {
+        toast.success("Registration Successful! 🎉");
+        onSwitchToLogin();
+      }
     });
   }
 
@@ -39,19 +41,6 @@ export default function RegisterForm({ onSwitchToLogin }) {
       [field]: value,
     }));
   }
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch();
-    }
-  }, [dispatch, error]);
-  useEffect(() => {
-    if (success) {
-      toast.success("Registration Successful");
-      dispatch(removeSuccess());
-      onSwitchToLogin();
-    }
-  }, [dispatch, success]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">

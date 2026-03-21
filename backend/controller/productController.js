@@ -2,6 +2,7 @@ import Product from "../models/productModel.js";
 import handleAsyncError from "../middleware/handleAsyncError.js";
 import { v2 as cloudinary } from "cloudinary";
 import APIFunctionality from "../utils/apiFunctionality.js";
+import HandleError from "../utils/handleError.js";
 
 export const createProducts = handleAsyncError(async (req, res, next) => {
   console.log("req.body →", req.body);
@@ -70,12 +71,25 @@ export const createProducts = handleAsyncError(async (req, res, next) => {
 });
 
 export const getAllProducts = handleAsyncError(async (req, res, next) => {
+  const resultsPerPage = 8;
   const apiFeatures = new APIFunctionality(Product.find(), req.query)
     .search()
     .filter(); // sirf search karo
 
-  const productCount = await apiFeatures.query.clone().countDocuments();
+  //Getting filtered query before pagination
+  const filteredQuery = apiFeatures.query.clone();
+  const productCount = await filteredQuery.countDocuments();
 
+  //Calculate totalPages based on filtered count
+  const totalPages = Math.ceil(productCount / resultsPerPage);
+  const page = Number(req.query.page) || 1;
+
+  if (page > totalPages && productCount > 0) {
+    return next(new HandleError("This page doesn't exist", 404));
+  }
+
+  //Apply Pagination
+  apiFeatures.pagination(resultsPerPage);
   const products = await apiFeatures.query;
 
   if (!products || products.length === 0) {
@@ -86,6 +100,9 @@ export const getAllProducts = handleAsyncError(async (req, res, next) => {
     success: true,
     products,
     productCount,
+    resultsPerPage,
+    totalPages,
+    currentPage: page,
   });
 });
 

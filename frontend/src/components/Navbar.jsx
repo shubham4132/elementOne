@@ -18,6 +18,7 @@ import CartDropdown from "../Cart/Cartdropdown";
 export default function Navbar({ onMenuClick }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [activeSubDropdown, setActiveSubDropdown] = useState(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -41,6 +42,9 @@ export default function Navbar({ onMenuClick }) {
   const toggleMenu = () => setIsOpen((p) => !p);
   const toggleDropdown = (name) =>
     setActiveDropdown((p) => (p === name ? null : name));
+
+  const toggleSubDropdown = (name) =>
+    setActiveSubDropdown((p) => (p === name ? null : name));
 
   const navItems = [
     { label: "AYURVEDA" },
@@ -93,7 +97,11 @@ export default function Navbar({ onMenuClick }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(
-        getProduct({ keyword: keyword.trim(), category: category || "" }),
+        getProduct({
+          keyword: keyword.trim(),
+          category: category || "",
+          page: 1,
+        }),
       ).then((data) => console.log(data));
     }, 500);
     return () => clearTimeout(timer);
@@ -159,35 +167,13 @@ export default function Navbar({ onMenuClick }) {
               {/* Logo */}
               <img
                 src={logo}
-                alt="Element One Nutrition"
-                className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-md flex-shrink-0"
+                onClick={() => navigate("/")}
+                className="h-39 w-39 object-contain cursor-pointer flex-shrink-0"
               />
             </div>
 
             {/* CENTER: desktop nav links */}
-            {/* <div className="hidden lg:flex items-center gap-7 flex-1 justify-center">
-              {navItems.map((item) => (
-                <div key={item.label} className="relative group">
-                  <button className="text-gray-800 font-semibold text-sm hover:text-gray-600 flex items-center gap-1 transition-colors whitespace-nowrap">
-                    {item.label}
-                    {item.dropdown && <ChevronDown size={15} />}
-                  </button>
-                  {item.dropdown && (
-                    <div className="absolute left-0 top-full mt-1 w-44 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
-                      {item.dropdown.map((sub) => (
-                        <button
-                          key={sub}
-                          onClick={() => handleCategoryClick(sub)}
-                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-lime-50 hover:text-green-800 transition-colors first:rounded-t-lg last:rounded-b-lg"
-                        >
-                          {sub}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div> */}
+
             {/* CENTER: desktop nav links */}
             <div className="hidden lg:flex items-center gap-7 flex-1 justify-center">
               {navItems.map((item) => (
@@ -274,12 +260,24 @@ export default function Navbar({ onMenuClick }) {
 
             {/* RIGHT: mobile cart + hamburger */}
             <div className="lg:hidden flex items-center gap-2">
-              <div className="md:hidden relative cursor-pointer">
-                <ShoppingCart className="text-gray-800" size={20} />
-                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                  0
-                </span>
+              <div className="md:hidden">
+                <CartDropdown />
               </div>
+              {user?.name ? (
+                <button
+                  onClick={() => {
+                    navigate("/profile");
+                    setIsOpen(false);
+                  }}
+                  className="md:hidden w-8 h-8 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-sm"
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </button>
+              ) : (
+                <div className="md:hidden">
+                  <ProfileDropdown />
+                </div>
+              )}
               <button
                 onClick={toggleMenu}
                 className="p-2 rounded-lg text-gray-800 hover:bg-lime-300 transition-colors"
@@ -323,7 +321,7 @@ export default function Navbar({ onMenuClick }) {
                 </button>
               )}
 
-              {navItems.map((item) => (
+              {/* {navItems.map((item) => (
                 <div key={item.label}>
                   <button
                     onClick={() => item.dropdown && toggleDropdown(item.label)}
@@ -347,6 +345,78 @@ export default function Navbar({ onMenuClick }) {
                         >
                           {sub}
                         </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))} */}
+              {navItems.map((item) => (
+                <div key={item.label}>
+                  <button
+                    onClick={() => {
+                      if (item.dropdown) {
+                        toggleDropdown(item.label);
+                        setActiveSubDropdown(null); // reset sub when parent toggles
+                      } else {
+                        handleCategoryClick(item.label);
+                      }
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-lime-300 transition-colors flex justify-between items-center"
+                  >
+                    {item.label}
+                    {item.dropdown && (
+                      <ChevronDown
+                        size={15}
+                        className={`transition-transform duration-200 ${
+                          activeDropdown === item.label ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  {item.dropdown && activeDropdown === item.label && (
+                    <div className="bg-white">
+                      {item.dropdown.map((sub) => (
+                        <div key={sub.label}>
+                          <button
+                            onClick={() => {
+                              if (sub.subDropdown) {
+                                toggleSubDropdown(sub.label); // ✅ alag state use kar raha
+                              } else {
+                                handleCategoryClick(sub.label);
+                              }
+                            }}
+                            className="w-full text-left flex items-center justify-between px-8 py-2.5 text-sm text-gray-700 hover:bg-lime-50 transition-colors border-b border-gray-100"
+                          >
+                            {sub.label}
+                            {sub.subDropdown && (
+                              <ChevronDown
+                                size={13}
+                                className={`transition-transform duration-200 ${
+                                  activeSubDropdown === sub.label
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
+                              />
+                            )}
+                          </button>
+
+                          {/* ✅ activeSubDropdown se check ho raha — parent se independent */}
+                          {sub.subDropdown &&
+                            activeSubDropdown === sub.label && (
+                              <div className="bg-lime-50">
+                                {sub.subDropdown.map((nested) => (
+                                  <button
+                                    key={nested}
+                                    onClick={() => handleCategoryClick(nested)}
+                                    className="w-full text-left block px-12 py-2.5 text-sm text-gray-600 hover:bg-lime-100 transition-colors border-b border-lime-100"
+                                  >
+                                    • {nested}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                        </div>
                       ))}
                     </div>
                   )}

@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../../features/admin/adminSlice";
 import { useDispatch } from "react-redux";
-
+import { useEffect, useRef } from "react";
+import "quill/dist/quill.snow.css";
 const initialFormData = {
   name: "",
   price: "",
@@ -48,19 +49,19 @@ const CATEGORIES = [
 ];
 
 const T = {
-  bg: "#0d0f1a",
-  surface: "#13152b",
-  card: "#161830",
-  border: "rgba(99,120,220,0.12)",
-  borderFoc: "rgba(99,120,220,0.45)",
-  green: "#7b8fff",
-  greenDim: "rgba(99,120,220,0.45)",
-  greenBg: "rgba(99,120,220,0.1)",
-  text: "#e2e6ff",
-  textMid: "rgba(200,208,255,0.6)",
-  textDim: "rgba(140,155,220,0.35)",
-  gold: "#f0a060",
-  blue: "#5bc8d4",
+  bg: "#f0f4f8",
+  surface: "#ffffff",
+  card: "#ffffff",
+  border: "rgba(15,23,42,0.08)",
+  borderFoc: "rgba(37,99,235,0.4)",
+  primary: "#2563eb",
+  primaryBg: "rgba(37,99,235,0.07)",
+  text: "#0f172a",
+  textMid: "#475569",
+  textDim: "#94a3b8",
+  gold: "#f59e0b",
+  teal: "#0891b2",
+  success: "#10b981",
 };
 
 function Input({
@@ -88,12 +89,12 @@ function Input({
         borderRadius: 10,
         fontSize: 13,
         fontFamily: "inherit",
-        background: "rgba(255,255,255,0.03)",
+        background: foc ? "#fff" : "#f8fafc",
         color: T.text,
         border: `1.5px solid ${foc ? T.borderFoc : T.border}`,
         outline: "none",
-        transition: "border 0.2s",
-        boxShadow: foc ? `0 0 0 3px rgba(99,120,220,0.08)` : "none",
+        transition: "all 0.2s",
+        boxShadow: foc ? `0 0 0 3px rgba(37,99,235,0.08)` : "none",
         ...style,
       }}
     />
@@ -118,14 +119,14 @@ function Textarea({ name, value, onChange, placeholder, rows = 4 }) {
         borderRadius: 10,
         fontSize: 13,
         fontFamily: "inherit",
-        background: "rgba(255,255,255,0.03)",
+        background: foc ? "#fff" : "#f8fafc",
         color: T.text,
         border: `1.5px solid ${foc ? T.borderFoc : T.border}`,
         outline: "none",
-        transition: "border 0.2s",
+        transition: "all 0.2s",
         resize: "vertical",
         lineHeight: 1.6,
-        boxShadow: foc ? `0 0 0 3px rgba(99,120,220,0.08)` : "none",
+        boxShadow: foc ? `0 0 0 3px rgba(37,99,235,0.08)` : "none",
       }}
     />
   );
@@ -137,11 +138,11 @@ function Field({ label, hint, children }) {
       <label
         style={{
           display: "block",
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 600,
           marginBottom: 6,
           color: T.textMid,
-          letterSpacing: "0.03em",
+          letterSpacing: "0.05em",
           textTransform: "uppercase",
         }}
       >
@@ -174,6 +175,7 @@ function Card({ title, icon, children }) {
         borderRadius: 16,
         marginBottom: 20,
         overflow: "hidden",
+        boxShadow: "0 1px 4px rgba(15,23,42,0.05)",
       }}
     >
       <div
@@ -190,8 +192,8 @@ function Card({ title, icon, children }) {
             width: 32,
             height: 32,
             borderRadius: 9,
-            background: T.greenBg,
-            border: `1px solid rgba(99,120,220,0.2)`,
+            background: T.primaryBg,
+            border: `1px solid rgba(37,99,235,0.15)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -216,9 +218,9 @@ function IngTag({ label, onRemove }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        background: "rgba(99,120,220,0.1)",
-        border: "1px solid rgba(99,120,220,0.22)",
-        color: T.green,
+        background: T.primaryBg,
+        border: `1px solid rgba(37,99,235,0.18)`,
+        color: T.primary,
         borderRadius: 20,
         padding: "4px 12px",
         fontSize: 12,
@@ -233,10 +235,9 @@ function IngTag({ label, onRemove }) {
           background: "none",
           border: "none",
           cursor: "pointer",
-          color: T.greenDim,
+          color: "rgba(37,99,235,0.4)",
           padding: 0,
           lineHeight: 1,
-          fontSize: 14,
           display: "flex",
         }}
       >
@@ -256,6 +257,36 @@ function IngTag({ label, onRemove }) {
     </span>
   );
 }
+function RichTextEditor({ value, onChange }) {
+  const editorRef = useRef(null);
+  const quillRef = useRef(null);
+
+  useEffect(() => {
+    if (quillRef.current) return;
+    import("quill").then((QuillModule) => {
+      const Quill = QuillModule.default;
+      quillRef.current = new Quill(editorRef.current, {
+        theme: "snow",
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ["bold", "italic", "underline"],
+            [{ color: [] }, { background: [] }],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["link"],
+            ["clean"],
+          ],
+        },
+      });
+      if (value) quillRef.current.root.innerHTML = value;
+      quillRef.current.on("text-change", () => {
+        onChange(quillRef.current.root.innerHTML);
+      });
+    });
+  }, []);
+
+  return <div ref={editorRef} style={{ height: 300, background: "#fff" }} />;
+}
 
 function BenRow({ text, onRemove }) {
   return (
@@ -267,7 +298,7 @@ function BenRow({ text, onRemove }) {
         padding: "9px 14px",
         borderRadius: 9,
         marginBottom: 6,
-        background: "rgba(255,255,255,0.025)",
+        background: "#f8fafc",
         border: `1px solid ${T.border}`,
       }}
     >
@@ -276,7 +307,7 @@ function BenRow({ text, onRemove }) {
         height="13"
         viewBox="0 0 24 24"
         fill="none"
-        stroke={T.green}
+        stroke={T.success}
         strokeWidth="2.5"
         strokeLinecap="round"
       >
@@ -291,8 +322,6 @@ function BenRow({ text, onRemove }) {
           border: "none",
           cursor: "pointer",
           color: T.textDim,
-          fontSize: 16,
-          lineHeight: 1,
           padding: 0,
           display: "flex",
         }}
@@ -339,10 +368,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
         .filter(Boolean)
     : [];
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((p) => ({ ...p, [name]: value }));
-  };
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const addIng = () => {
     if (!newIng.trim()) return;
@@ -444,7 +471,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
       height="15"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={T.green}
+      stroke={T.primary}
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -453,22 +480,46 @@ export default function AdminCreateProduct({ onProductCreated }) {
     </svg>
   );
 
+  const inputStyle = {
+    flex: 1,
+    padding: "10px 14px",
+    borderRadius: 10,
+    fontSize: 13,
+    fontFamily: "inherit",
+    background: "#f8fafc",
+    color: T.text,
+    border: `1.5px solid ${T.border}`,
+    outline: "none",
+  };
+  const addBtnStyle = {
+    padding: "10px 18px",
+    borderRadius: 10,
+    fontSize: 12,
+    fontWeight: 600,
+    background: T.primaryBg,
+    border: `1px solid rgba(37,99,235,0.2)`,
+    color: T.primary,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  };
+
   return (
     <div
       style={{
         minHeight: "100vh",
         background: T.bg,
-        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontFamily: "'Inter', system-ui, sans-serif",
         color: T.text,
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-        ::placeholder { color: rgba(140,155,220,0.25) !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        ::placeholder { color: #cbd5e1 !important; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(99,120,220,0.2); border-radius: 10px; }
-        select option { background: #13152b; color: #e2e6ff; }
+        ::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.12); border-radius: 10px; }
+        select option { background: #fff; color: #0f172a; }
       `}</style>
 
       {/* ── Top Bar ── */}
@@ -484,13 +535,14 @@ export default function AdminCreateProduct({ onProductCreated }) {
           position: "sticky",
           top: 0,
           zIndex: 20,
+          boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
             onClick={() => navigate("/admin/dashboard")}
             style={{
-              background: "rgba(255,255,255,0.03)",
+              background: "#f8fafc",
               border: `1px solid ${T.border}`,
               borderRadius: 9,
               padding: "6px 12px",
@@ -501,9 +553,18 @@ export default function AdminCreateProduct({ onProductCreated }) {
               color: T.textDim,
               fontSize: 12,
               fontWeight: 500,
+              transition: "all 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = T.green)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = T.textDim)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = T.primaryBg;
+              e.currentTarget.style.color = T.primary;
+              e.currentTarget.style.borderColor = "rgba(37,99,235,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#f8fafc";
+              e.currentTarget.style.color = T.textDim;
+              e.currentTarget.style.borderColor = T.border;
+            }}
           >
             <svg
               width="13"
@@ -528,7 +589,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "linear-gradient(135deg, #2d3580, #7b8fff)",
+                background: "linear-gradient(135deg, #1d4ed8, #2563eb)",
+                boxShadow: "0 2px 8px rgba(37,99,235,0.3)",
               }}
             >
               <svg
@@ -550,7 +612,16 @@ export default function AdminCreateProduct({ onProductCreated }) {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 4 }}>
+        {/* Step pills */}
+        <div
+          style={{
+            display: "flex",
+            background: "rgba(15,23,42,0.04)",
+            borderRadius: 10,
+            padding: 3,
+            gap: 2,
+          }}
+        >
           {STEPS.map((label, i) => {
             const done = i < step,
               active = i === step;
@@ -565,18 +636,11 @@ export default function AdminCreateProduct({ onProductCreated }) {
                   fontSize: 11,
                   fontWeight: 600,
                   cursor: "pointer",
-                  border: `1px solid ${active ? "rgba(99,120,220,0.35)" : done ? "rgba(99,120,220,0.15)" : T.border}`,
-                  background: active
-                    ? T.greenBg
-                    : done
-                      ? "rgba(99,120,220,0.05)"
-                      : "transparent",
-                  color: active
-                    ? T.green
-                    : done
-                      ? "rgba(99,120,220,0.55)"
-                      : T.textDim,
+                  border: "none",
                   transition: "all 0.2s",
+                  background: active ? T.surface : "transparent",
+                  color: active ? T.primary : done ? T.success : T.textDim,
+                  boxShadow: active ? "0 1px 4px rgba(15,23,42,0.1)" : "none",
                 }}
               >
                 {done ? "✓ " : `${i + 1}. `}
@@ -586,7 +650,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
           })}
         </div>
 
-        <span style={{ fontSize: 12, color: T.textDim }}>
+        <span style={{ fontSize: 12, color: T.textDim, fontWeight: 500 }}>
           Step {step + 1} / {STEPS.length}
         </span>
       </div>
@@ -595,24 +659,18 @@ export default function AdminCreateProduct({ onProductCreated }) {
       <div
         style={{ maxWidth: 1160, margin: "0 auto", padding: "28px 24px 60px" }}
       >
-        {/* Progress bar */}
+        {/* Progress stepper */}
         <div
           style={{
             marginBottom: 24,
             background: T.card,
             border: `1px solid ${T.border}`,
             borderRadius: 14,
-            padding: "16px 20px",
+            padding: "18px 24px",
+            boxShadow: "0 1px 4px rgba(15,23,42,0.05)",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              marginBottom: 10,
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {STEPS.map((label, i) => {
               const done = i < step,
                 active = i === step;
@@ -630,7 +688,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 7,
+                      gap: 8,
                       flexShrink: 0,
                     }}
                   >
@@ -645,14 +703,18 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         fontSize: 11,
                         fontWeight: 700,
                         background: done
-                          ? "rgba(99,120,220,0.2)"
+                          ? "rgba(16,185,129,0.1)"
                           : active
-                            ? T.greenBg
-                            : "rgba(255,255,255,0.03)",
-                        border: `1.5px solid ${done ? "rgba(99,120,220,0.4)" : active ? T.green : T.border}`,
-                        color: done ? T.green : active ? T.green : T.textDim,
+                            ? T.primaryBg
+                            : "#f1f5f9",
+                        border: `1.5px solid ${done ? T.success : active ? T.primary : T.border}`,
+                        color: done
+                          ? T.success
+                          : active
+                            ? T.primary
+                            : T.textDim,
                         boxShadow: active
-                          ? `0 0 0 3px rgba(99,120,220,0.1)`
+                          ? `0 0 0 3px rgba(37,99,235,0.1)`
                           : "none",
                       }}
                     >
@@ -662,7 +724,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           height="11"
                           viewBox="0 0 24 24"
                           fill="none"
-                          stroke={T.green}
+                          stroke={T.success}
                           strokeWidth="3"
                           strokeLinecap="round"
                         >
@@ -676,7 +738,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       style={{
                         fontSize: 12,
                         fontWeight: active ? 600 : 400,
-                        color: active ? T.text : done ? T.green : T.textDim,
+                        color: active ? T.text : done ? T.success : T.textDim,
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -689,7 +751,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         flex: 1,
                         height: 2,
                         borderRadius: 2,
-                        background: done ? "rgba(99,120,220,0.35)" : T.border,
+                        background: done ? "rgba(16,185,129,0.3)" : T.border,
                         minWidth: 20,
                       }}
                     />
@@ -775,7 +837,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           padding: "10px 14px",
                           borderRadius: 10,
                           fontSize: 13,
-                          background: "rgba(255,255,255,0.03)",
+                          background: "#f8fafc",
                           color: T.text,
                           border: `1.5px solid ${T.border}`,
                           outline: "none",
@@ -797,8 +859,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 8,
-                          background: "rgba(240,160,96,0.08)",
-                          border: "1px solid rgba(240,160,96,0.2)",
+                          background: "rgba(245,158,11,0.07)",
+                          border: "1px solid rgba(245,158,11,0.2)",
                           borderRadius: 9,
                           padding: "8px 14px",
                           marginTop: 4,
@@ -901,7 +963,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       placeholder="Brief, compelling one-liner about the product"
                     />
                   </Field>
-                  <Field
+                  {/* <Field
                     label="Detailed Description"
                     hint="shown on product detail page"
                   >
@@ -912,11 +974,24 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       placeholder="Full explanation — science, target audience, unique selling points..."
                       rows={7}
                     />
+                  </Field> */}
+                  <Field
+                    label="Detailed Description"
+                    hint="shown on product detail page"
+                  >
+                    <div style={{ marginBottom: 44 }}>
+                      <RichTextEditor
+                        value={formData.longDescription}
+                        onChange={(value) =>
+                          setFormData((p) => ({ ...p, longDescription: value }))
+                        }
+                      />
+                    </div>
                   </Field>
                   <div
                     style={{
-                      background: "rgba(99,120,220,0.05)",
-                      border: `1px solid rgba(99,120,220,0.12)`,
+                      background: T.primaryBg,
+                      border: `1px solid rgba(37,99,235,0.12)`,
                       borderRadius: 9,
                       padding: "12px 16px",
                     }}
@@ -924,14 +999,14 @@ export default function AdminCreateProduct({ onProductCreated }) {
                     <p
                       style={{
                         fontSize: 12,
-                        color: T.textDim,
+                        color: T.textMid,
                         margin: 0,
                         lineHeight: 1.6,
                       }}
                     >
-                      💡 <strong style={{ color: T.textMid }}>Tip:</strong> A
-                      great description explains the product's science, who it's
-                      for, and what makes it unique — in 3 to 5 sentences.
+                      💡 <strong style={{ color: T.text }}>Tip:</strong> A great
+                      description explains the product's science, who it's for,
+                      and what makes it unique — in 3 to 5 sentences.
                     </p>
                   </div>
                 </Card>
@@ -990,32 +1065,12 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           }
                         }}
                         placeholder="Type ingredient and press Enter..."
-                        style={{
-                          flex: 1,
-                          padding: "10px 14px",
-                          borderRadius: 10,
-                          fontSize: 13,
-                          fontFamily: "inherit",
-                          background: "rgba(255,255,255,0.03)",
-                          color: T.text,
-                          border: `1.5px solid ${T.border}`,
-                          outline: "none",
-                        }}
+                        style={inputStyle}
                       />
                       <button
                         type="button"
                         onClick={addIng}
-                        style={{
-                          padding: "10px 18px",
-                          borderRadius: 10,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          background: T.greenBg,
-                          border: `1px solid rgba(99,120,220,0.25)`,
-                          color: T.green,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
+                        style={addBtnStyle}
                       >
                         + Add
                       </button>
@@ -1062,32 +1117,12 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           }
                         }}
                         placeholder="e.g. Supports bone density"
-                        style={{
-                          flex: 1,
-                          padding: "10px 14px",
-                          borderRadius: 10,
-                          fontSize: 13,
-                          fontFamily: "inherit",
-                          background: "rgba(255,255,255,0.03)",
-                          color: T.text,
-                          border: `1.5px solid ${T.border}`,
-                          outline: "none",
-                        }}
+                        style={inputStyle}
                       />
                       <button
                         type="button"
                         onClick={addBen}
-                        style={{
-                          padding: "10px 18px",
-                          borderRadius: 10,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          background: T.greenBg,
-                          border: `1px solid rgba(99,120,220,0.25)`,
-                          color: T.green,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
+                        style={addBtnStyle}
                       >
                         + Add
                       </button>
@@ -1121,14 +1156,12 @@ export default function AdminCreateProduct({ onProductCreated }) {
                     }}
                     style={{
                       display: "block",
-                      border: `2px dashed ${dragOver ? T.green : "rgba(99,120,220,0.2)"}`,
+                      border: `2px dashed ${dragOver ? T.primary : "rgba(37,99,235,0.2)"}`,
                       borderRadius: 14,
                       padding: "40px 24px",
                       textAlign: "center",
                       cursor: "pointer",
-                      background: dragOver
-                        ? "rgba(99,120,220,0.05)"
-                        : "rgba(255,255,255,0.02)",
+                      background: dragOver ? T.primaryBg : "#fafbfc",
                       transition: "all 0.2s",
                       marginBottom: 20,
                     }}
@@ -1138,8 +1171,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         width: 48,
                         height: 48,
                         borderRadius: 14,
-                        background: T.greenBg,
-                        border: `1px solid rgba(99,120,220,0.2)`,
+                        background: T.primaryBg,
+                        border: `1px solid rgba(37,99,235,0.15)`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1151,7 +1184,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         height="22"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke={T.green}
+                        stroke={T.primary}
                         strokeWidth="1.8"
                         strokeLinecap="round"
                       >
@@ -1211,7 +1244,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                               overflow: "hidden",
                               border:
                                 i === 0
-                                  ? `2px solid ${T.green}`
+                                  ? `2px solid ${T.primary}`
                                   : `1px solid ${T.border}`,
                             }}
                           >
@@ -1221,8 +1254,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                                   position: "absolute",
                                   top: 5,
                                   left: 5,
-                                  background: "rgba(99,120,220,0.85)",
-                                  color: "#0d0f1a",
+                                  background: T.primary,
+                                  color: "#fff",
                                   fontSize: 8,
                                   fontWeight: 700,
                                   borderRadius: 4,
@@ -1251,16 +1284,13 @@ export default function AdminCreateProduct({ onProductCreated }) {
                                 position: "absolute",
                                 top: 5,
                                 right: 5,
-                                background: "rgba(0,0,0,0.6)",
+                                background: "rgba(0,0,0,0.55)",
                                 color: "#fff",
                                 border: "none",
                                 borderRadius: "50%",
                                 width: 20,
                                 height: 20,
                                 cursor: "pointer",
-                                fontSize: 13,
-                                lineHeight: "20px",
-                                textAlign: "center",
                                 padding: 0,
                                 zIndex: 2,
                                 display: "flex",
@@ -1307,7 +1337,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                     fontSize: 13,
                     fontWeight: 600,
                     cursor: step === 0 ? "not-allowed" : "pointer",
-                    background: "transparent",
+                    background: "#f8fafc",
                     border: `1.5px solid ${T.border}`,
                     color: step === 0 ? T.textDim : T.textMid,
                     transition: "all 0.2s",
@@ -1327,9 +1357,9 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       fontSize: 13,
                       fontWeight: 600,
                       cursor: "pointer",
-                      background: "rgba(99,120,220,0.12)",
-                      border: `1.5px solid rgba(99,120,220,0.3)`,
-                      color: T.green,
+                      background: T.primaryBg,
+                      border: `1.5px solid rgba(37,99,235,0.25)`,
+                      color: T.primary,
                       transition: "all 0.2s",
                     }}
                   >
@@ -1346,13 +1376,15 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       fontWeight: 700,
                       cursor: submitted ? "default" : "pointer",
                       background: submitted
-                        ? "rgba(99,120,220,0.15)"
-                        : "linear-gradient(135deg, #2d3580, #4a5ac8)",
-                      border: `1px solid rgba(99,120,220,0.3)`,
-                      color: submitted ? T.green : "#e2e6ff",
+                        ? "rgba(16,185,129,0.1)"
+                        : "linear-gradient(135deg, #1d4ed8, #2563eb)",
+                      border: submitted
+                        ? "1px solid rgba(16,185,129,0.3)"
+                        : "none",
+                      color: submitted ? T.success : "#fff",
                       boxShadow: submitted
                         ? "none"
-                        : "0 4px 14px rgba(45,53,128,0.45)",
+                        : "0 4px 14px rgba(37,99,235,0.35)",
                       transition: "all 0.3s",
                     }}
                   >
@@ -1370,12 +1402,14 @@ export default function AdminCreateProduct({ onProductCreated }) {
                   border: `1px solid ${T.border}`,
                   borderRadius: 16,
                   overflow: "hidden",
+                  boxShadow: "0 4px 16px rgba(15,23,42,0.08)",
                 }}
               >
+                {/* Browser mock header */}
                 <div
                   style={{
-                    background: "#0d0f1a",
-                    padding: "12px 16px",
+                    background: "#f1f5f9",
+                    padding: "10px 16px",
                     borderBottom: `1px solid ${T.border}`,
                     display: "flex",
                     alignItems: "center",
@@ -1383,11 +1417,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                   }}
                 >
                   <div style={{ display: "flex", gap: 5 }}>
-                    {[
-                      "rgba(255,90,80,0.7)",
-                      "rgba(255,180,40,0.7)",
-                      "rgba(40,180,60,0.7)",
-                    ].map((c, i) => (
+                    {["#fca5a5", "#fcd34d", "#86efac"].map((c, i) => (
                       <div
                         key={i}
                         style={{
@@ -1399,11 +1429,19 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       />
                     ))}
                   </div>
-                  <span
-                    style={{ fontSize: 11, color: T.textDim, fontWeight: 500 }}
+                  <div
+                    style={{
+                      background: "#fff",
+                      border: `1px solid ${T.border}`,
+                      borderRadius: 6,
+                      padding: "3px 12px",
+                      fontSize: 10,
+                      color: T.textDim,
+                      fontWeight: 500,
+                    }}
                   >
-                    Live Preview
-                  </span>
+                    elementone.in/product
+                  </div>
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 5 }}
                   >
@@ -1412,17 +1450,15 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         width: 6,
                         height: 6,
                         borderRadius: "50%",
-                        background: T.green,
-                        opacity: 0.7,
+                        background: T.success,
                       }}
                     />
-                    <span style={{ fontSize: 10, color: T.textDim }}>
-                      Syncing
-                    </span>
+                    <span style={{ fontSize: 10, color: T.textDim }}>Live</span>
                   </div>
                 </div>
 
                 <div style={{ padding: 18 }}>
+                  {/* Image */}
                   <div
                     style={{
                       width: "100%",
@@ -1430,9 +1466,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       borderRadius: 12,
                       marginBottom: 14,
                       overflow: "hidden",
-                      background: preview.length
-                        ? "transparent"
-                        : "rgba(99,120,220,0.05)",
+                      background: preview.length ? "transparent" : "#f8fafc",
                       border: `1px solid ${T.border}`,
                       display: "flex",
                       alignItems: "center",
@@ -1474,9 +1508,9 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       textTransform: "uppercase",
                       padding: "3px 8px",
                       borderRadius: 5,
-                      background: T.greenBg,
-                      color: T.green,
-                      border: `1px solid rgba(99,120,220,0.2)`,
+                      background: T.primaryBg,
+                      color: T.primary,
+                      border: `1px solid rgba(37,99,235,0.15)`,
                     }}
                   >
                     {formData.category || "Category"}
@@ -1537,9 +1571,9 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           fontWeight: 700,
                           padding: "2px 6px",
                           borderRadius: 5,
-                          background: "rgba(240,160,96,0.12)",
+                          background: "rgba(245,158,11,0.1)",
                           color: T.gold,
-                          border: `1px solid rgba(240,160,96,0.2)`,
+                          border: `1px solid rgba(245,158,11,0.2)`,
                         }}
                       >
                         {discount}% OFF
@@ -1564,7 +1598,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                             height="10"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke={T.green}
+                            stroke={T.success}
                             strokeWidth="3"
                             strokeLinecap="round"
                           >
@@ -1595,8 +1629,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         <div
                           style={{
                             flex: 1,
-                            background: "rgba(240,160,96,0.06)",
-                            border: "1px solid rgba(240,160,96,0.15)",
+                            background: "rgba(245,158,11,0.06)",
+                            border: "1px solid rgba(245,158,11,0.15)",
                             borderRadius: 8,
                             padding: "7px",
                             textAlign: "center",
@@ -1614,7 +1648,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           <div
                             style={{
                               fontSize: 9,
-                              color: "rgba(240,160,96,0.55)",
+                              color: "rgba(245,158,11,0.6)",
                               fontWeight: 500,
                             }}
                           >
@@ -1626,8 +1660,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         <div
                           style={{
                             flex: 1,
-                            background: "rgba(91,200,212,0.06)",
-                            border: "1px solid rgba(91,200,212,0.15)",
+                            background: "rgba(8,145,178,0.06)",
+                            border: "1px solid rgba(8,145,178,0.15)",
                             borderRadius: 8,
                             padding: "7px",
                             textAlign: "center",
@@ -1637,7 +1671,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                             style={{
                               fontWeight: 800,
                               fontSize: 14,
-                              color: T.blue,
+                              color: T.teal,
                             }}
                           >
                             {formData.viewersCount}
@@ -1645,7 +1679,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                           <div
                             style={{
                               fontSize: 9,
-                              color: "rgba(91,200,212,0.5)",
+                              color: "rgba(8,145,178,0.6)",
                               fontWeight: 500,
                             }}
                           >
@@ -1658,15 +1692,15 @@ export default function AdminCreateProduct({ onProductCreated }) {
 
                   <div
                     style={{
-                      background: "linear-gradient(135deg, #2d3580, #4a5ac8)",
+                      background: "linear-gradient(135deg, #1d4ed8, #2563eb)",
                       borderRadius: 10,
                       padding: 10,
                       textAlign: "center",
                       fontWeight: 700,
                       fontSize: 12,
-                      color: "#e2e6ff",
+                      color: "#fff",
                       cursor: "default",
-                      boxShadow: "0 4px 12px rgba(45,53,128,0.25)",
+                      boxShadow: "0 4px 12px rgba(37,99,235,0.25)",
                     }}
                   >
                     Add to Cart
@@ -1674,12 +1708,17 @@ export default function AdminCreateProduct({ onProductCreated }) {
                 </div>
 
                 {/* Completion meter */}
-                <div style={{ padding: "0 18px 18px" }}>
+                <div
+                  style={{
+                    padding: "0 18px 18px",
+                    borderTop: `1px solid ${T.border}`,
+                  }}
+                >
                   <div
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      marginBottom: 6,
+                      margin: "14px 0 6px",
                     }}
                   >
                     <span
@@ -1689,12 +1728,12 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         fontWeight: 500,
                       }}
                     >
-                      Completion
+                      Form Completion
                     </span>
                     <span
                       style={{
                         fontSize: 11,
-                        color: completion === 100 ? T.green : T.gold,
+                        color: completion === 100 ? T.success : T.gold,
                         fontWeight: 700,
                       }}
                     >
@@ -1703,8 +1742,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                   </div>
                   <div
                     style={{
-                      height: 5,
-                      background: "rgba(255,255,255,0.04)",
+                      height: 6,
+                      background: "#f1f5f9",
                       borderRadius: 999,
                       overflow: "hidden",
                     }}
@@ -1717,8 +1756,8 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         width: `${completion}%`,
                         background:
                           completion === 100
-                            ? `linear-gradient(90deg, #2d3580, ${T.green})`
-                            : `linear-gradient(90deg, #3d3060, ${T.gold})`,
+                            ? `linear-gradient(90deg, #059669, ${T.success})`
+                            : `linear-gradient(90deg, #d97706, ${T.gold})`,
                       }}
                     />
                   </div>
@@ -1727,7 +1766,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                       marginTop: 12,
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
-                      gap: 4,
+                      gap: 5,
                     }}
                   >
                     {[
@@ -1746,21 +1785,19 @@ export default function AdminCreateProduct({ onProductCreated }) {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 5,
+                          gap: 6,
                         }}
                       >
                         <div
                           style={{
-                            width: 12,
-                            height: 12,
+                            width: 14,
+                            height: 14,
                             borderRadius: "50%",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            background: v
-                              ? "rgba(99,120,220,0.15)"
-                              : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${v ? "rgba(99,120,220,0.3)" : T.border}`,
+                            background: v ? "rgba(16,185,129,0.1)" : "#f1f5f9",
+                            border: `1px solid ${v ? "rgba(16,185,129,0.3)" : T.border}`,
                             flexShrink: 0,
                           }}
                         >
@@ -1770,7 +1807,7 @@ export default function AdminCreateProduct({ onProductCreated }) {
                               height="7"
                               viewBox="0 0 24 24"
                               fill="none"
-                              stroke={T.green}
+                              stroke={T.success}
                               strokeWidth="3"
                               strokeLinecap="round"
                             >

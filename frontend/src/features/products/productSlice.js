@@ -17,16 +17,12 @@ import axios from "axios";
 
 export const getProduct = createAsyncThunk(
   "product/getProduct",
-  async ({ keyword, category }, { rejectWithValue }) => {
+  async ({ keyword, category, page = 1 } = {}, { rejectWithValue }) => {
     try {
-      let link = "/api/v1/products";
+      let link = `/api/v1/products?page=${page}`; // ✅ page hamesha bhejo
 
-      if (keyword) {
-        link += `?keyword=${keyword}`;
-      }
-      if (category) {
-        link += `?category=${category}`;
-      }
+      if (keyword) link += `&keyword=${keyword}`; // ✅ & use karo, ? nahi
+      if (category) link += `&category=${category}`; // ✅ & use karo, ? nahi
 
       const { data } = await axios.get(link);
       return data;
@@ -64,9 +60,9 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.products = action.payload.products;
-        // state.productCount = action.payload.productCount;
-        // state.resultsPerPage = action.payload.resultsPerPage;
-        // state.totalPages = action.payload.totalPages;
+        state.productCount = action.payload.productCount;
+        state.resultsPerPage = action.payload.resultsPerPage;
+        state.totalPages = action.payload.totalPages;
       })
       .addCase(getProduct.rejected, (state, action) => {
         state.loading = false;
