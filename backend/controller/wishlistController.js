@@ -1,6 +1,5 @@
 import Wishlist from "../models/wishlistModel.js";
 import handleAsyncError from "../middleware/handleAsyncError.js";
-import HandleError from "../utils/handleError.js";
 
 export const toggleWishlist = handleAsyncError(async (req, res, next) => {
   const { productId } = req.params;
