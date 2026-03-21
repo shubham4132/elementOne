@@ -9,7 +9,7 @@ import {
   User,
 } from "lucide-react";
 import logo from "../assets/logo.png";
-import ProfileDropdown from "./Profiledropdown";
+import ProfileDropdown from "./ProfileDropdown";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getProduct } from "../features/products/productSlice";
