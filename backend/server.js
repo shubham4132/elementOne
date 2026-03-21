@@ -13,7 +13,6 @@ cloudinary.config({
 });
 
 //connect to the database
-console.log("DB URI:", process.env.DB_URI, process.env.PORT);
 
 const port = process.env.PORT || 3000;
 export const instance = new Razorpay({

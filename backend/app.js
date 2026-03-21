@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import user from "./routes/userRoutes.js";
 import product from "./routes/productRoutes.js";
 import order from "./routes/orderRoutes.js";
@@ -9,6 +10,13 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import fileUpload from "express-fileupload";
 const app = express();
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
 //Middleware
 app.use(express.json());

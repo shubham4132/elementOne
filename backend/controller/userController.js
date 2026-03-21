@@ -20,13 +20,12 @@ export const registerUser = handleAsyncError(async (req, res, next) => {
 //LOGIN
 export const loginUser = handleAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("Entered Email:", email);
-  console.log("Entered Password:", password);
+
   if (!email || !password) {
     return next(new HandleError("Email or password cannot be empty", 400));
   }
   const user = await User.findOne({ email }).select("+password");
-  console.log("User from DB:", user);
+
   if (!user) {
     return next(new HandleError("Invalid Email or password", 401));
   }

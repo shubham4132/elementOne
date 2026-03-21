@@ -5,9 +5,6 @@ import APIFunctionality from "../utils/apiFunctionality.js";
 import HandleError from "../utils/handleError.js";
 
 export const createProducts = handleAsyncError(async (req, res, next) => {
-  console.log("req.body →", req.body);
-  console.log("req.files →", req.files);
-
   if (!req.files || !req.files.images) {
     return res.status(400).json({
       success: false,
