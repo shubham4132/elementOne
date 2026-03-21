@@ -18,7 +18,7 @@ import AdminProducts from "./Admin/pages/AdminProducts";
 import ProductDetails from "./pages/Product/ProductDetails";
 import Products from "./pages/Product/Products";
 import AdminEditProduct from "./Admin/pages/AdminEditProduct";
-import Checkout from "./pages/Order/checkout";
+import Checkout from "./pages/Order/Checkout";
 import OrderSuccess from "./pages/Order/OrderSuccess";
 import Order from "./pages/Order/Order";
 import AdminOrders from "./Admin/pages/AdminOrders";
