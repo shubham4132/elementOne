@@ -122,7 +122,7 @@ const userSlice = createSlice({
 
     //Login cases
     builder
-      .addCase(login.pending, (state, action) => {
+      .addCase(login.pending, (state) => {
         ((state.loading = true), (state.error = null));
       })
       .addCase(login.fulfilled, (state, action) => {
@@ -180,7 +180,7 @@ const userSlice = createSlice({
       .addCase(logout.pending, (state) => {
         ((state.loading = true), (state.error = null));
       })
-      .addCase(logout.fulfilled, (state, action) => {
+      .addCase(logout.fulfilled, (state) => {
         ((state.loading = false), (state.error = null));
         state.user = null;
         state.isAuthenticated = false;

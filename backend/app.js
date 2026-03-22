@@ -13,11 +13,19 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "https://element-10scyrjdf-shubham-goswamis-projects.vercel.app",
-      "https://element-one.vercel.app",
-      "http://localhost:5173",
-    ],
+    origin: function (origin, callback) {
+      const allowedOrigins = ["http://localhost:5173"];
+      // Vercel ke saare URLs allow karo
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
@@ -34,7 +42,7 @@ app.use("/api/v1", user);
 app.use("/api/v1", product);
 app.use("/api/v1", order);
 app.use("/api/v1", wishList);
-// Yeh line honi chahiye
+
 app.use("/api/v1", payment);
 
 app.use(errorHandleMiddleware);
